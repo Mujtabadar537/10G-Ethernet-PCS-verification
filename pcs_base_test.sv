@@ -56,6 +56,7 @@ function void build_phase(uvm_phase phase);
 	// creating environment
 	pcs10g_env = PCS_env::type_id::create("pcs10g_env" , this);
 
+	// getting virtual interface
 	if(!(uvm_config_db#(virtual xgmi_interface)::get(this, "", "xgmi_vif", xgmi_vif))) begin
       		`uvm_error(get_type_name(), "Failed to get virtual interface");
     	end
