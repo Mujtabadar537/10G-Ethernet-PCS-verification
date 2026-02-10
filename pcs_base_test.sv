@@ -46,6 +46,13 @@ virtual xgmi_interface xgmi_vif;
 //===============================
 int xgmii_frame_count;
 int payload_size;
+int error_char;
+int start_align;
+
+//===============================
+// linkup_sequence handle
+//===============================
+linkup_sequence linkup_seq;
 
 //===============================
 // Build phase
@@ -56,7 +63,9 @@ function void build_phase(uvm_phase phase);
 	// creating environment
 	pcs10g_env = PCS_env::type_id::create("pcs10g_env" , this);
 
-	// getting virtual interface
+	// creating linkup_sequence
+	linkup_seq = linkup_sequence::type_id::create("linkup_seq");
+
 	if(!(uvm_config_db#(virtual xgmi_interface)::get(this, "", "xgmi_vif", xgmi_vif))) begin
       		`uvm_error(get_type_name(), "Failed to get virtual interface");
     	end
@@ -67,17 +76,36 @@ function void build_phase(uvm_phase phase);
 	// getting number of frames as argument
 	$value$plusargs("FRAME_COUNT=%0d" , xgmii_frame_count);
 	`uvm_info(get_type_name() , $sformatf("FRAME_COUNT has been set to %0d" , xgmii_frame_count) , UVM_MEDIUM);
-	// setting number of frames in config_db
 	uvm_config_db#(int)::set(null , "*" , "frame_count" , xgmii_frame_count);
 
 	// getting payload size in bytes as argument
 	$value$plusargs("PAYLOAD_SIZE=%0d" , payload_size);
 	`uvm_info(get_type_name() , $sformatf("PAYLOAD_SIZE is selected as %0d bytes" , (payload_size * 64)/8) , UVM_MEDIUM);
-	// setting number of frames in config_db
 	uvm_config_db#(int)::set(null , "*" , "payload_size" , payload_size);
+
+	// error_char should be 1 to drive error characters at TX
+	$value$plusargs("ERROR_CHAR=%0d" , error_char);
+	`uvm_info(get_type_name() , $sformatf("ERROR_CHAR is selected as %0d " , error_char) , UVM_MEDIUM);
+	uvm_config_db#(int)::set(null , "*" , "error_char" , error_char);
+
+	// START_ALIGNMENT can be 0 or 4 , indicating 1st and 5th octet of TXD respectively
+	$value$plusargs("START_ALIGN=%0d" , start_align);
+	`uvm_info(get_type_name() , $sformatf("START_ALIGNMENT is selected as %0d " , start_align) , UVM_MEDIUM);
+	uvm_config_db#(int)::set(null , "*" , "start_align" , start_align);
 
 	`uvm_info(get_type_name(), "__________Ending pcs_base_test build phase__________", UVM_MEDIUM);
 endfunction
+
+//===============================
+// Main phase
+//===============================
+task main_phase(uvm_phase phase);
+	super.main_phase(phase);
+	phase.raise_objection(this);
+		// starting linkup sequence 
+		linkup_seq.start(pcs10g_env.tx_agnt.tx_sqncr);
+	phase.drop_objection(this);
+endtask
 
 //===============================
 // Reset phase

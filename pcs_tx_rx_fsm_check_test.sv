@@ -1,14 +1,14 @@
-class valid_tx_frames_serdes_width_64 extends pcs_base_test;
+class pcs_tx_rx_fsm_check_test extends pcs_base_test;
 
 //===============================
 // Factory registeration
 //===============================
-`uvm_component_utils(valid_tx_frames_serdes_width_64)
+`uvm_component_utils(pcs_tx_rx_fsm_check_test)
 
 //===============================
 // Constructor
 //===============================
-function new(string name = "valid_tx_frames_serdes_width_64" , uvm_component parent = null);
+function new(string name = "pcs_tx_rx_fsm_check_test" , uvm_component parent = null);
 	super.new(name , parent);
 endfunction
 

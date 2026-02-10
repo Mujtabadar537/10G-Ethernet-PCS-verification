@@ -80,9 +80,6 @@ endtask
 // Task to sample serdes data
 //================================
 task sample_serdes_data();
-	`uvm_info(get_type_name() , "=========================================================================" , UVM_HIGH)
-	`uvm_info(get_type_name() , "                           SerDes MONITOR FOR PCS"                         , UVM_HIGH)
-	`uvm_info(get_type_name() , "=========================================================================" , UVM_HIGH)
 	@(posedge xgmi_vif.TX_CLK iff xgmi_vif.rstn_as_i);
 	xgmi_item.serdes = xgmi_vif.serdes;
 	//`uvm_info(get_type_name() , $sformatf("SERDES_DATA = %0h" , xgmi_item.serdes) , UVM_MEDIUM)

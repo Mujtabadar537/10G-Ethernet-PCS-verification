@@ -67,6 +67,7 @@ function void connect_phase(uvm_phase phase);
 	tx_agnt.tx_mntr.tx_analysis_port.connect(scoreboard.tx_analysis_imp_port);
 	rx_agnt.rx_mntr.rx_analysis_port.connect(scoreboard.rx_analysis_imp_port);
 	rx_agnt.serdes_mntr.serdes_analysis_port.connect(rxpcs.serdes_analysis_imp_port);
+	rx_agnt.rx_mntr.rxref_analysis_port.connect(rxpcs.rxref_analysis_imp_port);
 endfunction
 
 endclass

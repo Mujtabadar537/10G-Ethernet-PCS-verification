@@ -21,6 +21,7 @@ package pcs_uvm_package;
 	
 	// UVM files
 	`include "xgmii_seq_item.sv"
+	`include "linkup_sequence.sv"
 	`include "xgmi_tx_sequence.sv"
 	`include "tx_sequencer.sv"
 	`include "tx_driver.sv"
@@ -33,5 +34,5 @@ package pcs_uvm_package;
 	`include "pcs_scoreboard.sv"
 	`include "PCS_env.sv"
 	`include "pcs_base_test.sv"
-	`include "valid_tx_frames_serdes_width_64.sv"
+	`include "pcs_tx_rx_fsm_check_test.sv"
 endpackage
