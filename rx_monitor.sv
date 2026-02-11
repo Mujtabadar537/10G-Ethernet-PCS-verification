@@ -82,7 +82,7 @@ endtask
 // Task to sample rx xgmii frames
 //================================
 task sample_xgmi_frame();
-	@(posedge xgmi_vif.TX_CLK iff (xgmi_vif.rstn_as_i /**&& xgmi_vif.VALID == 1 && xgmi_vif.SGNL_OK == 3**/));
+	@(posedge xgmi_vif.TX_CLK iff xgmi_vif.rstn_as_i);
 	if(xgmi_vif.RXD[7:0] == 8'hFB) begin
 	//if(xgmi_vif.RXD[63:0] == 64'hD5555555555555FB) begin
 	//if(xgmi_vif.RXD[63:0] == 64'hD5555555555555FB) begin
@@ -140,6 +140,17 @@ task sample_xgmi_frame();
 		rx_analysis_port.write(xgmi_item);
 		rxref_analysis_port.write(xgmi_item);
 		`uvm_info(get_type_name() , $sformatf("Terminate control character (%0h) detected on link\n" , xgmi_vif.RXD[7:0]) , UVM_MEDIUM);
+	end
+	else if(xgmi_vif.RXD[15:8] == 8'hFD) begin
+		 xgmi_item.RXD = xgmi_vif.RXD;
+		 xgmi_item.RXC = xgmi_vif.RXC;
+
+		 xgmi_item.VALID = xgmi_vif.VALID;
+		 xgmi_item.SGNL_OK = xgmi_vif.SGNL_OK;
+		 xgmi_item.print_rx("TX_MONITOR" , UVM_MEDIUM);
+		 rx_analysis_port.write(xgmi_item);
+		 rxref_analysis_port.write(xgmi_item);
+		 `uvm_info(get_type_name() , $sformatf("Terminate control character (%0h) detected on 2nd octet\n" , xgmi_vif.RXD[15:8]) , UVM_MEDIUM);
 	end
 	else if(xgmi_vif.RXD == 64'hFEFEFEFEFEFEFEFE) begin
 		`uvm_error(get_type_name() , "Error characters are recevied at RX")

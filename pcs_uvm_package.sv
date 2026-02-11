@@ -23,6 +23,7 @@ package pcs_uvm_package;
 	`include "xgmii_seq_item.sv"
 	`include "linkup_sequence.sv"
 	`include "xgmi_tx_sequence.sv"
+	`include "xgmii_terminate_char_sequence.sv"
 	`include "tx_sequencer.sv"
 	`include "tx_driver.sv"
 	`include "tx_monitor.sv"
@@ -34,5 +35,5 @@ package pcs_uvm_package;
 	`include "pcs_scoreboard.sv"
 	`include "PCS_env.sv"
 	`include "pcs_base_test.sv"
-	`include "pcs_tx_rx_fsm_check_test.sv"
+	`include "pcs_tx_rx_datapath_test.sv"
 endpackage

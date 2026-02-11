@@ -236,8 +236,7 @@ function void decoder(bit [65:0]descrambled_in , output logic [63:0] RXD_ex);
 		end
 		else if(synch == 2'b10) begin
 			`uvm_info("decoder" , "Start of frame (/S/) detected at 1st octet" , UVM_HIGH)
-			`uvm_info("decoder" , $sformatf("Block_type_field = %0h  |  synch = %b" ,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
-			`uvm_info("decoder" , $sformatf("66b_block = %0h" ,descrambled_in) , UVM_HIGH);
+			`uvm_info("decoder" , $sformatf("66b_block = %h  |  Block_type_field = %h  |  synch = %b" ,descrambled_in,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
 			RXD_ex = (descrambled_in >> 2);// removing synch
 			RXD_ex[7:0] = 8'hFB;// xgmii code for /S/
 			`uvm_info("decoder" , $sformatf("RXD_ex = %h\n" ,RXD_ex) , UVM_MEDIUM);
@@ -251,9 +250,8 @@ function void decoder(bit [65:0]descrambled_in , output logic [63:0] RXD_ex);
 			`uvm_error("decoder" , $sformatf("Block_type_field = %h  |  synch = %b\n" ,descrambled_in[9:2] , descrambled_in[1:0]));
 		end
 		else if(synch == 2'b10) begin
-			`uvm_info("decoder" , "Terminate character (/T/) at [7:0] detected ." , UVM_HIGH)
-			`uvm_info("decoder" , $sformatf("Block_type_field = %h  |  synch = %b" ,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
-			`uvm_info("decoder" , $sformatf("66b_block = %h" ,descrambled_in) , UVM_HIGH);
+			`uvm_info("decoder" , "Terminate character /T/ detected at 1st octet ." , UVM_HIGH)
+			`uvm_info("decoder" , $sformatf("66b_block = %h  |  Block_type_field = %h  |  synch = %b" ,descrambled_in,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
 			RXD_ex = (descrambled_in >> 2);// removing synch
 			RXD_ex[7:0] = 8'hFD;// xgmii code for /T/
 			RXD_ex[63:8] = 57'h07070707070707;
@@ -268,12 +266,27 @@ function void decoder(bit [65:0]descrambled_in , output logic [63:0] RXD_ex);
 		end
 		else if(synch == 2'b10) begin
 			`uvm_info("decoder" , "Start of frame /S/ detected at 5th octet" , UVM_MEDIUM)
-			`uvm_info("decoder" , $sformatf("Block_type_field = %0h  |  synch = %b" ,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_MEDIUM);
-			`uvm_info("decoder" , $sformatf("66b_block = %0h" ,descrambled_in) , UVM_MEDIUM);
+			`uvm_info("decoder" , $sformatf("66b_block = %h  |  Block_type_field = %h  |  synch = %b" ,descrambled_in,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
 			RXD_ex = (descrambled_in >> 2);// removing synch
 			RXD_ex[31:0] = 32'h07070707;
 			RXD_ex[39:32] = 8'hFB; 
 			RXD_ex[63:40] = 24'h555555;
+			`uvm_info("decoder" , $sformatf("RXD_ex = %h\n" ,RXD_ex) , UVM_MEDIUM);
+		end
+	end
+	// check for block field type 0x99 , indicating terminate control character at 2nd octet
+	else if(descrambled_in[9:2] == 8'h99) begin
+		if(synch == 2'b01) begin
+			`uvm_error("decoder" , "Invalid syncheader recevied")
+			`uvm_error("decoder" , $sformatf("Block_type_field = %h  |  synch = %b\n" ,descrambled_in[9:2] , descrambled_in[1:0]));
+		end
+		else if(synch == 2'b10) begin
+			`uvm_info("decoder" , "Terminate character /T/ detected at 1st octet ." , UVM_HIGH)
+			`uvm_info("decoder" , $sformatf("66b_block = %h  |  Block_type_field = %h  |  synch = %b" ,descrambled_in,descrambled_in[9:2] , descrambled_in[1:0]) , UVM_HIGH);
+			RXD_ex = (descrambled_in >> 2);// removing synch
+			RXD_ex[7:0] = 8'hDE;// D0 
+			RXD_ex[15:8] = 8'hFD;// xgmii code for /T/
+			RXD_ex[63:16] = 48'h070707070707;
 			`uvm_info("decoder" , $sformatf("RXD_ex = %h\n" ,RXD_ex) , UVM_MEDIUM);
 		end
 	end
@@ -289,10 +302,10 @@ function void decoder(bit [65:0]descrambled_in , output logic [63:0] RXD_ex);
 endfunction
 
 //==================================
-// Extract phase
+// Check phase
 //==================================
-function void extract_phase(uvm_phase phase);
-	super.extract_phase(phase);
+function void check_phase(uvm_phase phase);
+	super.check_phase(phase);
 	
 	total = match + mismatch;
 
@@ -329,14 +342,21 @@ function void report_phase(uvm_phase phase);
 	uvm_report_server srvr;
 	int uvm_error_count;
 	int uvm_fatal_count;
+	int uvm_warning_count;
 
 	srvr = uvm_report_server::get_server();
 	uvm_error_count = srvr.get_severity_count(UVM_ERROR);
 	uvm_fatal_count = srvr.get_severity_count(UVM_FATAL);
+	uvm_warning_count = srvr.get_severity_count(UVM_WARNING);
 
 	if(uvm_error_count != 0 || uvm_fatal_count != 0) begin
 		`uvm_info("TEST_STATUS",$sformatf("----------------------------------") , UVM_MEDIUM)
 		`uvm_info("TEST_STATUS",$sformatf("            TEST FAILED           ") , UVM_MEDIUM)
+		`uvm_info("TEST_STATUS",$sformatf("----------------------------------") , UVM_MEDIUM)
+	end
+	else if(uvm_warning_count != 0) begin
+		`uvm_info("TEST_STATUS",$sformatf("----------------------------------") , UVM_MEDIUM)
+		`uvm_info("TEST_STATUS",$sformatf("     TEST PASSED WITH WARNINGS    ") , UVM_MEDIUM)
 		`uvm_info("TEST_STATUS",$sformatf("----------------------------------") , UVM_MEDIUM)
 	end
 	else begin

@@ -48,6 +48,8 @@ int xgmii_frame_count;
 int payload_size;
 int error_char;
 int start_align;
+int run_tx_seq;
+int run_terminate_seq;
 
 //===============================
 // linkup_sequence handle
@@ -92,6 +94,16 @@ function void build_phase(uvm_phase phase);
 	$value$plusargs("START_ALIGN=%0d" , start_align);
 	`uvm_info(get_type_name() , $sformatf("START_ALIGNMENT is selected as %0d " , start_align) , UVM_MEDIUM);
 	uvm_config_db#(int)::set(null , "*" , "start_align" , start_align);
+	
+	// set as 1 to enable xgmi_tx_seq
+	$value$plusargs("RUN_TX_SEQ=%0d" , run_tx_seq);
+	`uvm_info(get_type_name() , $sformatf("RUN_TX_SEQ is set as %0d " , run_tx_seq) , UVM_MEDIUM);
+	uvm_config_db#(int)::set(null , "*" , "run_tx_seq" , run_tx_seq);
+
+	// set as 1 to enable to xgmi_terminate_seq
+	$value$plusargs("RUN_TERMINATE_SEQ=%0d" , run_terminate_seq);
+	`uvm_info(get_type_name() , $sformatf("RUN_TERMINATE_SEQ is set as %0d " , run_terminate_seq) , UVM_MEDIUM);
+	uvm_config_db#(int)::set(null , "*" , "run_terminate_seq" , run_terminate_seq);
 
 	`uvm_info(get_type_name(), "__________Ending pcs_base_test build phase__________", UVM_MEDIUM);
 endfunction
